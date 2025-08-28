@@ -10,7 +10,8 @@ class TokenData(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
-
+    admin_password: int
+    
 class UserResponse(BaseModel):
     id: int
     username: str

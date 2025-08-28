@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - Sistema de Votação</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/login.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="animated-background">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+            <div class="shape shape4"></div>
+        </div>
+        
+        <div class="login-card">
+            <div class="logo-container">
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                        <polyline points="16 7 22 7 22 13"></polyline>
+                    </svg>
+                </div>
+                <h2 class="login-title">Resultados da Votação</h2>
+                <p class="login-subtitle">Acompanhe o andamento da eleição</p>
+            </div>
+            
+            <div class="results-container">
+                <div class="total-votes">
+                    <h3>Total de Votos: {{ total_votos }}</h3>
+                </div>
+                
+                <div class="results-list">
+                    {% for resultado in resultados %}
+                    <div class="result-item">
+                        <div class="result-header">
+                            <h4>{{ resultado.chapa_nome }}</h4>
+                            <span class="vote-count">{{ resultado.total_votos }} votos</span>
+                        </div>
+                        <div class="result-bar">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ resultado.percentual }}%;"></div>
+                            </div>
+                            <span class="percentage">{{ resultado.percentual }}%</span>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <a href="/" class="back-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                    </svg>
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

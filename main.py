@@ -2,20 +2,31 @@ import uvicorn
 import argparse
 import asyncio
 
-from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi import FastAPI, Request 
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from database import create_tables
-from auth.auth_router import router as auth_router
+from auth.auth_routes import router as auth_router
+from votacao.votacao_router import router as votacao_router
 
 app = FastAPI()
 
 async def initialize_db(create_db: bool): # verifica se a db existe
     if create_db:
         await create_tables()
-        
+
+
 app.include_router(auth_router, prefix="/auth")
+app.include_router(votacao_router, prefix="/eleicao")
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def home_page(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
