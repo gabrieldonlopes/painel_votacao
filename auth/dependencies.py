@@ -2,6 +2,7 @@
 from typing import Optional
 from fastapi import Request, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from .auth_handler import decode_access_token
 from database import get_db
 from models import User
@@ -59,7 +60,7 @@ async def get_current_user(
     result = await db.execute(
         # ajuste conforme seu modelo: aqui uso "username" como campo único
         # se usar id no token, adapte para buscar por id
-        __import__("sqlalchemy").future.select(User).filter(User.username == token_data.username)
+        select(User).filter(User.username == token_data.username)
     )
     user = result.scalars().first()
     if user is None:
@@ -68,5 +69,5 @@ async def get_current_user(
 
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
-    # Implemente checagens adicionais (is_active) se tiver no modelo
+    # TODO: Implementar checagens adicionais (is_active) se tiver no modelo
     return current_user

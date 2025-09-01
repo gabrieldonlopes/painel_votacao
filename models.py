@@ -1,7 +1,7 @@
 from sqlalchemy import String,Integer,ForeignKey,DateTime,Boolean
 from sqlalchemy.orm import Mapped, mapped_column,relationship, DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from datetime import datetime
+from datetime import datetime,timezone
 
 class Base(AsyncAttrs, DeclarativeBase): 
     pass
@@ -29,7 +29,8 @@ class Voto(Base):
     __tablename__ = "Voto"
 
     matricula: Mapped[str] = mapped_column(String(100), primary_key=True)
-    horario: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    documento: Mapped[str] = mapped_column(String(100))
+    horario: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
 
     chapa_id: Mapped[int] = mapped_column(ForeignKey("Chapa.chapa_id"), nullable=False)
 

@@ -55,9 +55,13 @@ async def login_action(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    admin_password: str = Form(...),
     remember_me: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db),
 ):
+    if int(admin_password) != int(ADMIN_PASSWORD):
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="tá tentando hackear meu site é?")
+    
     user = await authenticate_user(db, username, password)
     if not user:
         return templates.TemplateResponse(
@@ -67,7 +71,7 @@ async def login_action(
 
     # Ajusta tempo de expiração
     if remember_me:
-        access_token_expires = timedelta(days=7)
+        access_token_expires = timedelta(days=3)
     else:
         # padrão definido em auth_handler ACCESS_TOKEN_EXPIRE_MINUTES
         from .auth_handler import ACCESS_TOKEN_EXPIRE_MINUTES
@@ -100,7 +104,6 @@ async def logout_action():
 @router.post("/register", response_class=JSONResponse)
 async def register_api(user: UserCreate, db: AsyncSession = Depends(get_db)):
     if user.admin_password != int(ADMIN_PASSWORD):
-        print(user.admin_password)
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="tá tentando hackear meu site é?")
 
     # Verifica se já existe
