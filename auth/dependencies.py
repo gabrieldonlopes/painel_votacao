@@ -30,44 +30,32 @@ async def _get_token_from_request(request: Request) -> Optional[str]:
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db)
-) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
+) -> Optional[User]:
     token = await _get_token_from_request(request)
     if not token:
-        raise credentials_exception
+        return None
 
     try:
         payload = decode_access_token(token)
         username: str = payload.get("sub")
         if username is None:
-            raise credentials_exception
+            return None
         token_data = TokenData(username=username)
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        return None
     except jwt.PyJWTError:
-        raise credentials_exception
+        return None
 
     # Busca usuário no banco
     result = await db.execute(
-        # ajuste conforme seu modelo: aqui uso "username" como campo único
-        # se usar id no token, adapte para buscar por id
         select(User).filter(User.username == token_data.username)
     )
     user = result.scalars().first()
-    if user is None:
-        raise credentials_exception
     return user
 
-
-async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
-    # TODO: Implementar checagens adicionais (is_active) se tiver no modelo
+async def get_current_active_user(
+    current_user: Optional[User] = Depends(get_current_user)
+) -> Optional[User]:
+    if current_user and not current_user.is_active:
+        return None
     return current_user

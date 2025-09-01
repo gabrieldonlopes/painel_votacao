@@ -21,15 +21,12 @@ class Chapa(Base):
     chapa_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     chapa_nome: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    # Relacionamento com Votos
-    votos: Mapped[list["Voto"]] = relationship("Voto", back_populates="chapa")
-
-
 class Voto(Base):
     __tablename__ = "Voto"
 
     matricula: Mapped[str] = mapped_column(String(100), primary_key=True)
-    documento: Mapped[str] = mapped_column(String(100))
+    #documento: Mapped[str] = mapped_column(String(100))
+    #estudante: Mapped[str] = mapped_column(String(100))
     horario: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
 
     chapa_id: Mapped[int] = mapped_column(ForeignKey("Chapa.chapa_id"), nullable=False)

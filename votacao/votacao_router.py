@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, HTTPException
+from fastapi import APIRouter, Request, Depends, Form, HTTPException,status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
 from sqlalchemy.ext.asyncio import AsyncSession 
@@ -17,7 +17,14 @@ templates = Jinja2Templates(directory="templates")
 
 # Página de cadastro de chapa
 @router.get("/cadastrar-chapa", response_class=HTMLResponse)
-async def cadastrar_chapa_page(request: Request, error: str = None, message: str = None):
+async def cadastrar_chapa_page(
+    request: Request, 
+    current_user: User = Depends(get_current_active_user),
+    error: str = None, 
+    message: str = None
+):
+    if not current_user or not current_user.is_active:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse(
         "cadastrar_chapa.html", 
         {
@@ -34,6 +41,8 @@ async def cadastrar_chapa_action(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)  # Garante que só usuário autenticado acesse
 ):
+    if not current_user or not current_user.is_active:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     try:
         # Cria objeto de schema
         nova_chapa = ChapaCreate(chapa_nome=chapa_nome)
@@ -59,9 +68,12 @@ async def cadastrar_chapa_action(
 async def votar_page(
     request: Request,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
     error: str = None,
-    message: str = None
+    message: str = None,
 ):
+    if not current_user or not current_user.is_active:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     # Carrega as chapas para exibir no select
     result = await db.execute(select(Chapa))
     chapas = result.scalars().all()
@@ -85,6 +97,8 @@ async def votar_action(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
+    if not current_user or not current_user.is_active:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     try:
         novo_voto = VotoCreate(matricula=matricula, chapa_id=chapa_id)
         await votar_chapa(novo_voto, current_user, db)
@@ -101,7 +115,13 @@ async def votar_action(
         )
 
 @router.get("/resultados", response_class=HTMLResponse)
-async def resultados_page(request: Request, db: AsyncSession = Depends(get_db)):
+async def resultados_page(
+    request: Request, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    if not current_user or not current_user.is_active:
+        return RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     # Conta total de votos
     total_votos_result = await db.execute(select(func.count(Voto.matricula)))
     total_votos = total_votos_result.scalar() or 0
