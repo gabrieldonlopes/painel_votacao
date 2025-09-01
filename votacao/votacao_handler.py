@@ -51,7 +51,7 @@ async def votar_chapa(novo_voto:VotoCreate,user:User,db:AsyncSession):
         raise HTTPException(status_code=404, detail="Chapa não existe")
 
 
-    from datetime import datetime,timezone
+    from datetime import datetime
     db_voto = Voto(
         matricula=novo_voto.matricula,
         horario=datetime.now(),

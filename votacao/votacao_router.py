@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Request, Depends, Form, HTTPException,status
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from starlette.status import HTTP_303_SEE_OTHER, HTTP_400_BAD_REQUEST
 from sqlalchemy.ext.asyncio import AsyncSession 
 from sqlalchemy.future import select
 from sqlalchemy import func
 from fastapi.templating import Jinja2Templates
+import pandas as pd
+import io
 
 from database import get_db
 from auth.dependencies import get_current_active_user
@@ -149,5 +151,68 @@ async def resultados_page(
             "request": request,
             "total_votos": total_votos,
             "resultados": resultados
+        }
+    )
+
+@router.get("/exportar-resultados")
+async def exportar_resultados(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    if not current_user or not current_user.is_active:
+        raise HTTPException(status_code=401, detail="Usuário não autorizado")
+
+    # Busca todos os votos com informações das chapas
+    result = await db.execute(
+        select(
+            Voto.matricula,
+            Voto.horario,
+            Chapa.chapa_nome
+        )
+        .join(Chapa, Voto.chapa_id == Chapa.chapa_id)
+        .order_by(Voto.horario)
+    )
+    
+    votos = result.all()
+
+    # Cria DataFrame com os dados
+    df = pd.DataFrame(votos, columns=["Matrícula", "Horário", "Chapa"])
+
+    # Cria um buffer em memória para o arquivo Excel
+    output = io.BytesIO()
+    
+    # Usa o ExcelWriter para criar o arquivo
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Votos Detalhados', index=False)
+        
+        # Formata a planilha
+        workbook = writer.book
+        worksheet = writer.sheets['Votos Detalhados']
+        
+        # Formata o cabeçalho
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#366092',
+            'font_color': 'white',
+            'border': 1
+        })
+        
+        # Aplica formatação ao cabeçalho
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value, header_format)
+        
+        # Ajusta a largura das colunas
+        worksheet.set_column('A:A', 20)
+        worksheet.set_column('B:B', 25)
+        worksheet.set_column('C:C', 30)
+
+    output.seek(0)
+
+    # Retorna o arquivo como download
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": "attachment; filename=resultados_eleicao.xlsx"
         }
     )

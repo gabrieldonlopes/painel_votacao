@@ -20,6 +20,8 @@ class Chapa(Base):
 
     chapa_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     chapa_nome: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    votos: Mapped[list["Voto"]] = relationship("Voto", back_populates="chapa")
 
 class Voto(Base):
     __tablename__ = "Voto"
