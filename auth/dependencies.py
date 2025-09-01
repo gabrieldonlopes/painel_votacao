@@ -26,7 +26,9 @@ async def _get_token_from_request(request: Request) -> Optional[str]:
             token = auth_header[7:].strip()
     return token
 
-
+# NOTE: essa abordagem de retorno de None não é muito boa. 
+# é uma gambiarra muito grande, que pode trazer problemas e vulnerabilidades
+# Infelizmente não tenho tempo para melhorar (acredito que teria trocar a stack)
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db)
