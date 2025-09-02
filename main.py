@@ -10,6 +10,8 @@ from fastapi.templating import Jinja2Templates
 from database import create_tables
 from auth.auth_routes import router as auth_router
 from votacao.votacao_router import router as votacao_router
+import os
+from dotenv import load_dotenv
 
 app = FastAPI()
 
@@ -17,6 +19,8 @@ async def initialize_db(create_db: bool): # verifica se a db existe
     if create_db:
         await create_tables()
 
+PORT = int(os.getenv("PORT"))
+HOST = os.getenv("HOST")
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(votacao_router, prefix="/eleicao")
@@ -46,5 +50,5 @@ if __name__ == "__main__":
         asyncio.run(initialize_db(args.create_db))
 
     if args.run_server:
-        uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="info")
+        uvicorn.run("main:app", host=HOST, port=PORT, log_level="info")
     
