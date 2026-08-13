@@ -28,8 +28,8 @@ O projeto foi construído para facilitar e modernizar o processo eleitoral escol
 ### Passos gerais
 ```bash
 # Clone o repositório
-git clone <url-do-seu-repositorio>
-cd <nome-da-pasta-do-projeto>
+git clone https://github.com/gabrieldonlopes/painel_votacao.git
+cd painel_votacao
 
 # (Opcional) Crie e ative um ambiente virtual
 python -m venv venv
